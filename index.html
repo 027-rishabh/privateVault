@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Note App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container" id="auth-section">
+    <h2>Note App</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <label><input type="checkbox" id="remember-me" /> Remember Me</label>
+    <button id="signup">Sign Up</button>
+    <button id="login">Login</button>
+    <p id="auth-message"></p>
+  </div>
+
+  <div class="container hidden" id="note-section">
+    <h2>Your Notes</h2>
+
+    <div class="note-editor">
+      <input type="text" id="note-title" placeholder="Note Title (optional)" />
+      <textarea id="note-input" placeholder="Write your note..."></textarea>
+      <button id="add-note">Add Note</button>
+      <button id="logout">Logout</button>
+    </div>
+
+    <div class="notes-container">
+      <ul id="notes-list"></ul>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
