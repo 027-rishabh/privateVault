@@ -198,3 +198,27 @@ window.onload = () => {
   }
 };
 
+
+// Automatic Login
+window.onload = () => {
+  const remembered = localStorage.getItem("rememberedUser");
+  if (remembered) {
+    const users = loadUsers();
+    if (users[remembered]) {
+      currentUser = remembered;
+      showNotes();
+    }
+  }
+};
+
+// Service Worker Registration for Offline Support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(function(registration) {
+        console.log('Service Worker registered with scope:', registration.scope);
+      }, function(error) {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+}
