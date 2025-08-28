@@ -89,35 +89,43 @@
 
     <!-- Main Application -->
     <div id="app-container" class="app-container hidden">
-        <!-- Header -->
+        <!-- Enhanced Header -->
         <header class="app-header">
-            <div class="header-left">
-                <button id="sidebar-toggle" class="btn btn-ghost">
-                    <i data-lucide="menu"></i>
-                </button>
-                <h1 class="app-title">Private Vault</h1>
-            </div>
-            
-            <div class="header-center">
-                <div class="search-container">
-                    <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Search notes..." class="search-input">
-                    <button id="search-clear" class="search-clear hidden">
-                        <i data-lucide="x"></i>
+            <div class="header-content">
+                <div class="header-left">
+                    <button id="sidebar-toggle" class="btn btn-ghost header-btn">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="app-branding">
+                        <i data-lucide="shield" class="brand-icon"></i>
+                        <h1 class="app-title">Private Vault</h1>
+                    </div>
+                </div>
+                
+                <div class="header-center">
+                    <div class="search-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Search notes..." class="search-input">
+                        <button id="search-clear" class="search-clear hidden">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button id="export-btn" class="btn btn-ghost header-btn" title="Export notes">
+                        <i data-lucide="download"></i>
+                        <span class="btn-text">Export</span>
+                    </button>
+                    <button id="settings-btn" class="btn btn-ghost header-btn" title="Settings">
+                        <i data-lucide="settings"></i>
+                        <span class="btn-text">Settings</span>
+                    </button>
+                    <button id="logout" class="btn btn-ghost header-btn" title="Sign out">
+                        <i data-lucide="log-out"></i>
+                        <span class="btn-text">Logout</span>
                     </button>
                 </div>
-            </div>
-            
-            <div class="header-right">
-                <button id="export-btn" class="btn btn-ghost" title="Export notes">
-                    <i data-lucide="download"></i>
-                </button>
-                <button id="settings-btn" class="btn btn-ghost" title="Settings">
-                    <i data-lucide="settings"></i>
-                </button>
-                <button id="logout" class="btn btn-ghost" title="Sign out">
-                    <i data-lucide="log-out"></i>
-                </button>
             </div>
         </header>
 
