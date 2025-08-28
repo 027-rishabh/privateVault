@@ -1,38 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Note App</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Vault - Smart Note Taking</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Enhanced Meta Tags -->
+    <meta name="description" content="Your private, secure note-taking app with advanced features">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Private Vault">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
-  <div class="container" id="auth-section">
-    <h2>Note App</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <label><input type="checkbox" id="remember-me" /> Remember Me</label>
-    <button id="signup">Sign Up</button>
-    <button id="login">Login</button>
-    <p id="auth-message"></p>
-  </div>
-
-  <div class="container hidden" id="note-section">
-    <h2>Your Notes</h2>
-
-    <div class="note-editor">
-      <input type="text" id="note-title" placeholder="Note Title (optional)" />
-      <textarea id="note-input" placeholder="Write your note..."></textarea>
-      <button id="add-note">Add Note</button>
-      <button id="logout">Logout</button>
+    <!-- Install App Banner -->
+    <div id="install-banner" class="install-banner hidden">
+        <div class="install-content">
+            <i data-lucide="download" class="install-icon"></i>
+            <div class="install-text">
+                <strong>Install Private Vault</strong>
+                <span>Get the full app experience</span>
+            </div>
+            <button id="install-btn" class="btn btn-primary">Install</button>
+            <button id="install-dismiss" class="btn btn-ghost">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
     </div>
 
-    <div class="notes-container">
-      <ul id="notes-list"></ul>
+    <!-- Authentication Section -->
+    <div id="auth-section" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i data-lucide="lock" class="auth-icon"></i>
+                <h1>Private Vault</h1>
+                <p>Your secure personal note-taking space</p>
+            </div>
+            
+            <form id="auth-form" class="auth-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                        <button type="button" id="toggle-password" class="password-toggle">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="remember-me">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                </div>
+                
+                <div class="auth-buttons">
+                    <button type="button" id="login" class="btn btn-primary">Sign In</button>
+                    <button type="button" id="signup" class="btn btn-secondary">Sign Up</button>
+                </div>
+                
+                <div id="auth-message" class="auth-message"></div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <script src="app.js"></script>
+    <!-- Main Application -->
+    <div id="app-container" class="app-container hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <button id="sidebar-toggle" class="btn btn-ghost">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 class="app-title">Private Vault</h1>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search notes..." class="search-input">
+                    <button id="search-clear" class="search-clear hidden">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button id="export-btn" class="btn btn-ghost" title="Export notes">
+                    <i data-lucide="download"></i>
+                </button>
+                <button id="settings-btn" class="btn btn-ghost" title="Settings">
+                    <i data-lucide="settings"></i>
+                </button>
+                <button id="logout" class="btn btn-ghost" title="Sign out">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="sidebar">
+                <nav class="nav-menu">
+                    <button class="nav-item active" data-filter="all">
+                        <i data-lucide="sticky-note"></i>
+                        <span>All Notes</span>
+                        <span id="all-count" class="nav-count">0</span>
+                    </button>
+                    <button class="nav-item" data-filter="pinned">
+                        <i data-lucide="pin"></i>
+                        <span>Pinned</span>
+                        <span id="pinned-count" class="nav-count">0</span>
+                    </button>
+                    <button class="nav-item" data-filter="favorites">
+                        <i data-lucide="heart"></i>
+                        <span>Favorites</span>
+                        <span id="favorites-count" class="nav-count">0</span>
+                    </button>
+                    <button class="nav-item" data-filter="recent">
+                        <i data-lucide="clock"></i>
+                        <span>Recent</span>
+                        <span id="recent-count" class="nav-count">0</span>
+                    </button>
+                </nav>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="categories-section">
+                    <div class="section-header">
+                        <h3>Categories</h3>
+                        <button id="add-category" class="btn btn-ghost btn-sm">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    <div id="categories-list" class="categories-list">
+                        <!-- Categories will be dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="tags-section">
+                    <div class="section-header">
+                        <h3>Tags</h3>
+                        <button id="add-tag" class="btn btn-ghost btn-sm">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    <div id="tags-list" class="tags-list">
+                        <!-- Tags will be dynamically populated -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <button id="new-note" class="btn btn-primary">
+                            <i data-lucide="plus"></i>
+                            New Note
+                        </button>
+                        <div class="view-toggle">
+                            <button id="grid-view" class="btn btn-ghost active" title="Grid view">
+                                <i data-lucide="grid-3x3"></i>
+                            </button>
+                            <button id="list-view" class="btn btn-ghost" title="List view">
+                                <i data-lucide="list"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="toolbar-right">
+                        <div class="sort-dropdown">
+                            <button id="sort-btn" class="btn btn-ghost">
+                                <i data-lucide="arrow-up-down"></i>
+                                Sort
+                            </button>
+                            <div id="sort-menu" class="dropdown-menu hidden">
+                                <button data-sort="dateModified">Date Modified</button>
+                                <button data-sort="dateCreated">Date Created</button>
+                                <button data-sort="title">Title</button>
+                                <button data-sort="category">Category</button>
+                            </div>
+                        </div>
+                        
+                        <button id="bulk-select" class="btn btn-ghost" title="Select multiple">
+                            <i data-lucide="check-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters Bar -->
+                <div id="filters-bar" class="filters-bar hidden">
+                    <div class="active-filters">
+                        <span class="filter-label">Filters:</span>
+                        <div id="active-filters-list"></div>
+                        <button id="clear-filters" class="btn btn-ghost btn-sm">
+                            <i data-lucide="x"></i>
+                            Clear all
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notes Container -->
+                <div id="notes-container" class="notes-container">
+                    <div id="notes-grid" class="notes-grid masonry-grid">
+                        <!-- Notes will be dynamically populated -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="empty-state" class="empty-state hidden">
+                        <i data-lucide="sticky-note" class="empty-icon"></i>
+                        <h3>No notes yet</h3>
+                        <p>Create your first note to get started</p>
+                        <button id="empty-new-note" class="btn btn-primary">
+                            <i data-lucide="plus"></i>
+                            Create Note
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Note Editor Modal -->
+    <div id="note-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <input type="text" id="note-title-input" placeholder="Note title..." class="note-title-input">
+                <div class="modal-actions">
+                    <button id="note-category-btn" class="btn btn-ghost" title="Select category">
+                        <i data-lucide="folder"></i>
+                        <span id="current-category">No Category</span>
+                    </button>
+                    <button id="note-tags-btn" class="btn btn-ghost" title="Manage tags">
+                        <i data-lucide="tag"></i>
+                        <span id="current-tags">Tags</span>
+                    </button>
+                    <button id="close-modal" class="btn btn-ghost" title="Close">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div id="note-editor" class="note-editor">
+                    <!-- Quill editor will be initialized here -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="note-metadata">
+                    <span id="note-created" class="note-meta"></span>
+                    <span id="note-modified" class="note-meta"></span>
+                    <span id="note-word-count" class="note-meta">0 words</span>
+                </div>
+                <div class="modal-footer-actions">
+                    <button id="delete-note" class="btn btn-danger">
+                        <i data-lucide="trash-2"></i>
+                        Delete
+                    </button>
+                    <button id="save-note" class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Selection Modal -->
+    <div id="category-select-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Select Category</h3>
+                <button id="close-category-select-modal" class="btn btn-ghost">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="category-select-list" class="category-select-list">
+                    <!-- Category options will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tags Management Modal -->
+    <div id="tags-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="tags-modal-title">Manage Tags</h3>
+                <button id="close-tags-modal" class="btn btn-ghost">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="tag-input">Add Tags (comma separated)</label>
+                    <input type="text" id="tag-input" placeholder="work, personal, ideas..." maxlength="100">
+                    <small>Press Enter or comma to add multiple tags</small>
+                </div>
+                
+                <div class="current-tags-section">
+                    <label>Current Tags:</label>
+                    <div id="current-tags-display" class="tags-display">
+                        <!-- Current note tags will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="available-tags-section">
+                    <label>Available Tags:</label>
+                    <div id="available-tags-display" class="tags-display">
+                        <!-- All available tags will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-tags" class="btn btn-secondary">Cancel</button>
+                <button id="save-tags" class="btn btn-primary">Save Tags</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Tag Modal -->
+    <div id="create-tag-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Create New Tag</h3>
+                <button id="close-create-tag-modal" class="btn btn-ghost">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="new-tag-input">Tag Name</label>
+                    <input type="text" id="new-tag-input" placeholder="Enter tag name" maxlength="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-create-tag" class="btn btn-secondary">Cancel</button>
+                <button id="save-create-tag" class="btn btn-primary">Create Tag</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="category-modal-title">Add Category</h3>
+                <button id="close-category-modal" class="btn btn-ghost">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="category-name-input">Category Name</label>
+                    <input type="text" id="category-name-input" placeholder="Enter category name" maxlength="30">
+                </div>
+                <div class="input-group">
+                    <label for="category-color-input">Color</label>
+                    <div class="color-picker">
+                        <div class="color-option active" data-color="#3b82f6"></div>
+                        <div class="color-option" data-color="#10b981"></div>
+                        <div class="color-option" data-color="#f59e0b"></div>
+                        <div class="color-option" data-color="#ef4444"></div>
+                        <div class="color-option" data-color="#8b5cf6"></div>
+                        <div class="color-option" data-color="#06b6d4"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-category" class="btn btn-secondary">Cancel</button>
+                <button id="save-category" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button id="close-settings-modal" class="btn btn-ghost">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Data Management</h4>
+                    <div class="setting-item">
+                        <button id="import-notes" class="btn btn-secondary">
+                            <i data-lucide="upload"></i>
+                            Import Notes
+                        </button>
+                    </div>
+                    <div class="setting-item">
+                        <button id="export-all" class="btn btn-secondary">
+                            <i data-lucide="download"></i>
+                            Export All Notes
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>Keyboard Shortcuts</h4>
+                    <div class="shortcuts-list">
+                        <div class="shortcut-item">
+                            <span>New Note</span>
+                            <kbd>Ctrl + N</kbd>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Search</span>
+                            <kbd>Ctrl + F</kbd>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Save Note</span>
+                            <kbd>Ctrl + S</kbd>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Close Note</span>
+                            <kbd>Esc</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- Hidden file input for imports -->
+    <input type="file" id="file-input" accept=".json,.md,.txt" style="display: none;">
 </body>
 </html>
-
